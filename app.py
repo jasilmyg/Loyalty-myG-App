@@ -2,8 +2,7 @@ from flask import Flask, request, redirect, render_template_string, abort, jsoni
 import os
 import sys
 import datetime
-import gspread
-from google.oauth2.service_account import Credentials
+import requests
 
 # Force UTF-8 encoding for standard output to avoid charmap errors on Windows
 if sys.stdout.encoding.lower() != 'utf-8':
@@ -12,28 +11,12 @@ if sys.stdout.encoding.lower() != 'utf-8':
 app = Flask(__name__, static_folder='.', static_url_path='')
 
 # ──────────────────────────────────────────────
-#  ⚙️  CONFIG — Change this to your redirect URL
+#  ⚙️  CONFIG
 # ──────────────────────────────────────────────
 REDIRECT_URL = 'https://mygmobile.app.link/'   # 🔁 Update this!
-SHEET_ID = '1cdVrhFTixKgU0ja4W_jxH3BAe2knQ4okIiZNbAmcJbA'
 
-# ──────────────────────────────────────────────
-#  Google Sheets Initialization
-# ──────────────────────────────────────────────
-SCOPES = [
-    'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/drive'
-]
-gclient = None
-try:
-    if os.path.exists('credentials.json'):
-        creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
-        gclient = gspread.authorize(creds)
-        print("✅ Google Sheets connection successful.")
-    else:
-        print("⚠️ Warning: credentials.json not found. Google Sheets integration will be skipped.")
-except Exception as e:
-    print(f"❌ Error connecting to Google Sheets: {e}")
+# Paste your deployed Google Apps Script Web App URL here:
+APPS_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL'
 
 # ──────────────────────────────────────────────
 #  Serve the landing page
@@ -77,17 +60,24 @@ def submit():
     print(f"  Customer Mobile: +91 {customer_mobile}")
     print(f"{'-'*40}")
 
-    # ── Save to Google Sheets ──
-    if gclient:
+    # ── Save to Google Sheets via Web App ──
+    if APPS_SCRIPT_URL != 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL':
         try:
-            sheet = gclient.open_by_key(SHEET_ID).sheet1
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            row = [timestamp, staff_mobile, customer_name, customer_mobile]
-            sheet.append_row(row)
-            print("✅ Data successfully saved to Google Sheets.")
+            payload = {
+                "timestamp": timestamp,
+                "staff_mobile": staff_mobile,
+                "customer_name": customer_name,
+                "customer_mobile": customer_mobile
+            }
+            # Send data to Apps Script
+            requests.post(APPS_SCRIPT_URL, json=payload, timeout=5)
+            print("✅ Data successfully sent to Google Sheets Web App.")
         except Exception as e:
-            print(f"❌ Failed to save to Google Sheets: {e}")
+            print(f"❌ Failed to send to Google Sheets Web App: {e}")
             # We continue anyway so the user still gets redirected
+    else:
+        print("⚠️ APPS_SCRIPT_URL not configured. Skipping Google Sheets integration.")
 
     # Return success JSON with redirect URL
     from flask import jsonify
