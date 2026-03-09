@@ -99,15 +99,24 @@ async function handleSubmit(e) {
             body: formData.toString()
         });
 
-        if (res.redirected) {
-            // Show success then follow redirect
-            $('step-2').classList.add('hidden');
-            $('prog-2').classList.remove('active');
-            $('prog-2').classList.add('done');
-            $('step-success').classList.remove('hidden');
-            setTimeout(() => { window.location.href = res.url; }, 2000);
-        } else if (!res.ok) {
+        if (res.ok) {
             const data = await res.json();
+            if (data.success) {
+                // Show success then follow redirect
+                $('step-2').classList.add('hidden');
+                $('prog-2').classList.remove('active');
+                $('prog-2').classList.add('done');
+                $('step-success').classList.remove('hidden');
+                setTimeout(() => { window.location.href = data.redirect_url; }, 2000);
+            } else {
+                const msgs = Object.values(data.errors || {}).join(' ');
+                $('server-error-msg').textContent = msgs || 'Submission failed. Please try again.';
+                $('server-error').classList.remove('hidden');
+                $('btn-label').textContent = 'Submit & Earn Points';
+                btn.disabled = false;
+            }
+        } else {
+            const data = await res.json().catch(() => ({}));
             const msgs = Object.values(data.errors || {}).join(' ');
             $('server-error-msg').textContent = msgs || 'Submission failed. Please try again.';
             $('server-error').classList.remove('hidden');

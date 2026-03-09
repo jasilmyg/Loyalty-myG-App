@@ -55,8 +55,9 @@ def submit():
     print(f"  Customer Mobile: +91 {customer_mobile}")
     print(f"{'-'*40}")
 
-    # Redirect to the configured URL
-    return redirect(REDIRECT_URL, code=302)
+    # Return success JSON with redirect URL
+    from flask import jsonify
+    return jsonify({'success': True, 'redirect_url': REDIRECT_URL}), 200
 
 
 if __name__ == '__main__':
