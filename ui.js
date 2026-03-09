@@ -86,12 +86,18 @@ async function handleSubmit(e) {
     $('server-error').classList.add('hidden');
 
     try {
-        const formData = new FormData();
+        const formData = new URLSearchParams();
         formData.append('staff_mobile', staff);
         formData.append('customer_name', name);
         formData.append('customer_mobile', mobile);
 
-        const res = await fetch('/submit', { method: 'POST', body: formData });
+        const res = await fetch('/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData.toString()
+        });
 
         if (res.redirected) {
             // Show success then follow redirect
