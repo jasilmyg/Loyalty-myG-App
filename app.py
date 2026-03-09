@@ -16,7 +16,7 @@ app = Flask(__name__, static_folder='.', static_url_path='')
 REDIRECT_URL = 'https://mygmobile.app.link/'   # 🔁 Update this!
 
 # Paste your deployed Google Apps Script Web App URL here:
-APPS_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL'
+APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztRdHNiG3eVGmvxYf0vyGN-p_1_PVYY1Wlda5LVxEij-koHo6kElOUZeXtOs4_1VEFjg/exec'
 
 # ──────────────────────────────────────────────
 #  Serve the landing page
