@@ -1,6 +1,9 @@
-from flask import Flask, request, redirect, render_template_string, abort
+from flask import Flask, request, redirect, render_template_string, abort, jsonify
 import os
 import sys
+import datetime
+import gspread
+from google.oauth2.service_account import Credentials
 
 # Force UTF-8 encoding for standard output to avoid charmap errors on Windows
 if sys.stdout.encoding.lower() != 'utf-8':
@@ -12,6 +15,25 @@ app = Flask(__name__, static_folder='.', static_url_path='')
 #  ⚙️  CONFIG — Change this to your redirect URL
 # ──────────────────────────────────────────────
 REDIRECT_URL = 'https://mygmobile.app.link/'   # 🔁 Update this!
+SHEET_ID = '1cdVrhFTixKgU0ja4W_jxH3BAe2knQ4okIiZNbAmcJbA'
+
+# ──────────────────────────────────────────────
+#  Google Sheets Initialization
+# ──────────────────────────────────────────────
+SCOPES = [
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive'
+]
+gclient = None
+try:
+    if os.path.exists('credentials.json'):
+        creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
+        gclient = gspread.authorize(creds)
+        print("✅ Google Sheets connection successful.")
+    else:
+        print("⚠️ Warning: credentials.json not found. Google Sheets integration will be skipped.")
+except Exception as e:
+    print(f"❌ Error connecting to Google Sheets: {e}")
 
 # ──────────────────────────────────────────────
 #  Serve the landing page
@@ -48,12 +70,24 @@ def submit():
         from flask import jsonify
         return jsonify({'success': False, 'errors': errors}), 400
 
-    # -- Log the visit (optional: print / save to file / DB) --
+    # ── Log the visit to console ──
     print("\n[NEW VISIT LOGGED]")
     print(f"  Staff Mobile   : +91 {staff_mobile}")
     print(f"  Customer Name  : {customer_name}")
     print(f"  Customer Mobile: +91 {customer_mobile}")
     print(f"{'-'*40}")
+
+    # ── Save to Google Sheets ──
+    if gclient:
+        try:
+            sheet = gclient.open_by_key(SHEET_ID).sheet1
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            row = [timestamp, staff_mobile, customer_name, customer_mobile]
+            sheet.append_row(row)
+            print("✅ Data successfully saved to Google Sheets.")
+        except Exception as e:
+            print(f"❌ Failed to save to Google Sheets: {e}")
+            # We continue anyway so the user still gets redirected
 
     # Return success JSON with redirect URL
     from flask import jsonify
