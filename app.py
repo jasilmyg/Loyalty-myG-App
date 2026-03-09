@@ -48,7 +48,7 @@ def submit():
     print(f"  Staff Mobile   : +91 {staff_mobile}")
     print(f"  Customer Name  : {customer_name}")
     print(f"  Customer Mobile: +91 {customer_mobile}")
-    print(f"{'─'*40}")
+    print(f"{'-'*40}")
 
     # Redirect to the configured URL
     return redirect(REDIRECT_URL, code=302)
