@@ -1,5 +1,10 @@
 from flask import Flask, request, redirect, render_template_string, abort
 import os
+import sys
+
+# Force UTF-8 encoding for standard output to avoid charmap errors on Windows
+if sys.stdout.encoding.lower() != 'utf-8':
+    sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', buffering=1)
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
@@ -43,8 +48,8 @@ def submit():
         from flask import jsonify
         return jsonify({'success': False, 'errors': errors}), 400
 
-    # ── Log the visit (optional: print / save to file / DB) ──
-    print(f"\n[NEW VISIT LOGGED]")
+    # -- Log the visit (optional: print / save to file / DB) --
+    print("\n[NEW VISIT LOGGED]")
     print(f"  Staff Mobile   : +91 {staff_mobile}")
     print(f"  Customer Name  : {customer_name}")
     print(f"  Customer Mobile: +91 {customer_mobile}")
